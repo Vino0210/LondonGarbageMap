@@ -21,9 +21,9 @@
       position: absolute;
       top: 0;
       width: 100%;
-      background: rgba(255, 255, 255, 0); /* 设置为透明悬浮效果 */
-      padding: 10px 20px;
-      font-size: 16px; /* 修改为更大字体可加强视觉效果 */
+      background: rgba(0, 0, 0, 0); /* 设置为透明悬浮效果 */
+      padding: 15px 30px;
+      font-size: 20px; /* 修改为更大字体可加强视觉效果 */
       font-weight: 600;
       z-index: 3;
       text-align: center;
@@ -114,7 +114,7 @@
 <body>
 
 <!-- 页面主标题 -->
-<div id="header">📍 Where Cleanliness Ends – London Garbage & Surveillance Map</div>
+<div id="header"> BIN THERE, SEEN THAT</div>
 
 <!-- 图层控制菜单 -->
 <div id="menu">
@@ -191,7 +191,7 @@
   // 初始化地图
   const map = new mapboxgl.Map({
     container: 'map',
-    style: 'mapbox://styles/mapbox/light-v11',
+    style: 'mapbox://styles/mapbox/dark-v11',
     center: [-0.1, 51.5],
     zoom: 11
   });
@@ -200,7 +200,7 @@
   const sources = {
     bins: {
       type: 'geojson',
-      data: 'London.geojson'
+      data: 'UK.geojson'
     },
     cams: {
       type: 'geojson',
@@ -217,7 +217,7 @@
         type: 'circle',
         source: 'bins',
         paint: {
-          'circle-radius': 4,        // 控制点大小
+          'circle-radius': 2,        // 控制点大小
           'circle-color': '#2ecc71', // 控制垃圾桶颜色
           'circle-opacity': 0.5      // 控制透明度
         },
@@ -241,7 +241,7 @@
         type: 'circle',
         source: 'cams',
         paint: {
-          'circle-radius': 4,         // 摄像头点大小
+          'circle-radius': 2,         // 摄像头点大小
           'circle-color': '#e74c3c',  // 红色摄像头点
           'circle-opacity': 0.5
         },
@@ -335,7 +335,7 @@
           1, "#ff0000"
         ],
         'heatmap-radius': 18,
-        'heatmap-opacity': 0.6
+        'heatmap-opacity': 0.4
       }
     });
 
@@ -361,7 +361,7 @@
           1, "#003366"
         ],
         'heatmap-radius': 18,
-        'heatmap-opacity': 0.6
+        'heatmap-opacity': 0.4
       }
     });
 
