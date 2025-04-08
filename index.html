@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>London Map – Where Cleanliness Ends</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- 引入字体和 Mapbox 库 -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      background: #f8f8f8; /* 可修改背景色 */
+    }
+
+    /* 页面顶部标题栏，可更改字体大小、颜色、位置 */
+    #header {
+      position: absolute;
+      top: 0;
+      width: 100%;
+      background: rgba(255, 255, 255, 0); /* 设置为透明悬浮效果 */
+      padding: 10px 20px;
+      font-size: 16px; /* 修改为更大字体可加强视觉效果 */
+      font-weight: 600;
+      z-index: 3;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    #map {
+      position: absolute;
+      top: 50px;
+      bottom: 0;
+      width: 100%;
+    }
+
+    /* 左侧菜单栏，可调整宽度、阴影、字体等 */
+    #menu {
+      position: absolute;
+      background: white;
+      padding: 20px;
+      z-index: 2;
+      top: 70px;
+      left: 10px;
+      font-size: 13px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.2); /* 可改为更强或更淡 */
+      border-radius: 8px;
+      max-width: 220px;
+    }
+
+    /* 图例样式，可替换图标或改图标大小 */
+    #legend {
+      position: absolute;
+      bottom: 20px;
+      left: 10px;
+      background: white;
+      padding: 20px;
+      font-size: 13px;
+      z-index: 2;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .legend-item img {
+      width: 16px; /* 可放大图例图标 */
+      height: 16px;
+      margin-right: 8px;
+    }
+
+    .jump-btn {
+    display: block; /* 每个按钮单独一行 */
+    width: 100%;
+    margin-top: 6px;
+    padding: 6px 10px;
+    background: #f0f0f0;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.3s ease;
+  }
+  .jump-btn:hover {
+    background: #e0e0e0;
+  }
+  #toggleBinHeatmapBtn, #toggleCamHeatmapBtn {
+      position: absolute;
+      bottom: 30px;
+      right: 20px;
+      background: white;
+      border: 1px solid #ccc;
+      padding: 10px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      z-index: 3;
+      font-size: 13px;
+    }
+
+    #toggleCamHeatmapBtn {
+      bottom: 70px;
+    }
+</style>
+</head>
+<body>
+
+<!-- 页面主标题 -->
+<div id="header">📍 Where Cleanliness Ends – London Garbage & Surveillance Map</div>
+
+<!-- 图层控制菜单 -->
+<div id="menu">
+    <label><input type="checkbox" id="binsToggle" checked> Show Garbage Bins</label><br/>
+    <label><input type="checkbox" id="camsToggle"> Show Surveillance Cameras</label>
+  
+    <hr style="margin:10px 0;">
+    <b>Jump to:</b>
+    <div style="max-height: 300px; overflow-y: auto; margin-top: 5px;">
+      <button class="jump-btn" onclick="flyToLocation('barking')">Barking and Dagenham</button>
+      <button class="jump-btn" onclick="flyToLocation('barnet')">Barnet</button>
+      <button class="jump-btn" onclick="flyToLocation('bexley')">Bexley</button>
+      <button class="jump-btn" onclick="flyToLocation('brent')">Brent</button>
+      <button class="jump-btn" onclick="flyToLocation('bromley')">Bromley</button>
+      <button class="jump-btn" onclick="flyToLocation('camden')">Camden</button>
+      <button class="jump-btn" onclick="flyToLocation('croydon')">Croydon</button>
+      <button class="jump-btn" onclick="flyToLocation('ealing')">Ealing</button>
+      <button class="jump-btn" onclick="flyToLocation('enfield')">Enfield</button>
+      <button class="jump-btn" onclick="flyToLocation('greenwich')">Greenwich</button>
+      <button class="jump-btn" onclick="flyToLocation('hackney')">Hackney</button>
+      <button class="jump-btn" onclick="flyToLocation('hammersmith')">Hammersmith and Fulham</button>
+      <button class="jump-btn" onclick="flyToLocation('haringey')">Haringey</button>
+      <button class="jump-btn" onclick="flyToLocation('harrow')">Harrow</button>
+      <button class="jump-btn" onclick="flyToLocation('havering')">Havering</button>
+      <button class="jump-btn" onclick="flyToLocation('hillingdon')">Hillingdon</button>
+      <button class="jump-btn" onclick="flyToLocation('hounslow')">Hounslow</button>
+      <button class="jump-btn" onclick="flyToLocation('islington')">Islington</button>
+      <button class="jump-btn" onclick="flyToLocation('kensington')">Kensington and Chelsea</button>
+      <button class="jump-btn" onclick="flyToLocation('kingston')">Kingston upon Thames</button>
+      <button class="jump-btn" onclick="flyToLocation('lambeth')">Lambeth</button>
+      <button class="jump-btn" onclick="flyToLocation('lewisham')">Lewisham</button>
+      <button class="jump-btn" onclick="flyToLocation('merton')">Merton</button>
+      <button class="jump-btn" onclick="flyToLocation('newham')">Newham</button>
+      <button class="jump-btn" onclick="flyToLocation('redbridge')">Redbridge</button>
+      <button class="jump-btn" onclick="flyToLocation('richmond')">Richmond upon Thames</button>
+      <button class="jump-btn" onclick="flyToLocation('southwark')">Southwark</button>
+      <button class="jump-btn" onclick="flyToLocation('sutton')">Sutton</button>
+      <button class="jump-btn" onclick="flyToLocation('tower')">Tower Hamlets</button>
+      <button class="jump-btn" onclick="flyToLocation('waltham')">Waltham Forest</button>
+      <button class="jump-btn" onclick="flyToLocation('wandsworth')">Wandsworth</button>
+      <button class="jump-btn" onclick="flyToLocation('westminster')">Westminster</button>
+      <button class="jump-btn" onclick="flyToLocation('city')">City of London</button>
+    </div>
+  </div>
+  
+
+<!-- 图例 -->
+<!-- 图例 -->
+<div id="legend">
+    <div class="legend-item">
+      <div style="width:16px; height:16px; border-radius:50%; background-color:#2ecc71; margin-right:8px;"></div>
+      Garbage Bin
+    </div>
+    <div class="legend-item">
+      <div style="width:16px; height:16px; border-radius:50%; background-color:#e74c3c; margin-right:8px;"></div>
+      Surveillance Camera
+    </div>
+  </div>
+  
+
+<!-- 信息弹窗区域 -->
+<div id="info-box">
+  <span class="close-btn" onclick="document.getElementById('info-box').style.display='none'">×</span>
+  <div id="info-content"></div>
+</div>
+<div id="map"></div>
+<button id="toggleBinHeatmapBtn">Garbage Heatmap Off</button>
+<button id="toggleCamHeatmapBtn">Camera Heatmap Off</button>
+
+<script>
+  // Mapbox Access Token，请替换为你的个人 Token
+  mapboxgl.accessToken = 'pk.eyJ1IjoidmlubzAyMTAiLCJhIjoiY204enF2bHZiMGZheTJxc2E3d2U2MnBvNyJ9.l7NQv2evjhA3uXUZ8PxJYg';
+
+  // 初始化地图
+  const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/light-v11',
+    center: [-0.1, 51.5],
+    zoom: 11
+  });
+
+  // 加载垃圾桶和摄像头点位
+  const sources = {
+    bins: {
+      type: 'geojson',
+      data: 'London.geojson'
+    },
+    cams: {
+      type: 'geojson',
+      data: 'londonmonitor.geojson'
+    }
+  };
+
+  function addMapLayers() {
+    // 添加垃圾桶图层（绿色）
+    if (!map.getSource('bins')) {
+      map.addSource('bins', sources.bins);
+      map.addLayer({
+        id: 'bins-layer',
+        type: 'circle',
+        source: 'bins',
+        paint: {
+          'circle-radius': 3,        // 控制点大小
+          'circle-color': '#2ecc71', // 控制垃圾桶颜色
+          'circle-opacity': 0.4      // 控制透明度
+        },
+        filter: ['==', '$type', 'Point']
+      });
+
+      map.on('click', 'bins-layer', (e) => {
+        const coordinates = e.features[0].geometry.coordinates.slice();
+        new mapboxgl.Popup()
+          .setLngLat(coordinates)
+          .setHTML('<strong>Garbage Bin</strong><br>Public Infrastructure')
+          .addTo(map);
+      });
+    }
+
+    // 添加摄像头图层（红色）
+    if (!map.getSource('cams')) {
+      map.addSource('cams', sources.cams);
+      map.addLayer({
+        id: 'cams-layer',
+        type: 'circle',
+        source: 'cams',
+        paint: {
+          'circle-radius': 3,         // 摄像头点大小
+          'circle-color': '#e74c3c',  // 红色摄像头点
+          'circle-opacity': 0.4
+        },
+        layout: {
+          'visibility': 'none'
+        },
+        filter: ['==', '$type', 'Point']
+      });
+
+      map.on('click', 'cams-layer', (e) => {
+        const coordinates = e.features[0].geometry.coordinates.slice();
+        new mapboxgl.Popup()
+          .setLngLat(coordinates)
+          .setHTML('<strong>Surveillance Camera</strong><br>Type: CCTV')
+          .addTo(map);
+      });
+    }
+  }
+
+  // 区域跳转函数
+  function flyToLocation(name) {
+    const locations = {
+      hackney:     { center: [-0.055, 51.545], zoom: 14 },
+      westminster: { center: [-0.135, 51.497], zoom: 14 },
+      camden:      { center: [-0.14, 51.54], zoom: 14 },
+      barking:     { center: [0.1, 51.55], zoom: 12 },
+      barnet:      { center: [-0.2, 51.65], zoom: 12 },
+      bexley:      { center: [0.15, 51.45], zoom: 12 },
+      brent:       { center: [-0.27, 51.56], zoom: 12 },
+      bromley:     { center: [0.02, 51.41], zoom: 12 },
+      croydon:     { center: [-0.1, 51.38], zoom: 12 },
+      ealing:      { center: [-0.3, 51.52], zoom: 12 },
+      enfield:     { center: [-0.08, 51.66], zoom: 12 },
+      greenwich:   { center: [0.01, 51.48], zoom: 12 },
+      hammersmith: { center: [-0.23, 51.49], zoom: 13 },
+      haringey:    { center: [-0.11, 51.58], zoom: 13 },
+      harrow:      { center: [-0.34, 51.58], zoom: 12 },
+      havering:    { center: [0.2, 51.57], zoom: 12 },
+      hillingdon:  { center: [-0.45, 51.53], zoom: 12 },
+      hounslow:    { center: [-0.37, 51.47], zoom: 12 },
+      islington:   { center: [-0.105, 51.538], zoom: 14 },
+      kensington:  { center: [-0.19, 51.495], zoom: 14 },
+      kingston:    { center: [-0.3, 51.41], zoom: 12 },
+      lambeth:     { center: [-0.12, 51.46], zoom: 13 },
+      lewisham:    { center: [-0.015, 51.46], zoom: 13 },
+      merton:      { center: [-0.2, 51.42], zoom: 12 },
+      newham:      { center: [0.02, 51.53], zoom: 13 },
+      redbridge:   { center: [0.06, 51.58], zoom: 12 },
+      richmond:    { center: [-0.28, 51.45], zoom: 12 },
+      southwark:   { center: [-0.08, 51.5], zoom: 13 },
+      sutton:      { center: [-0.2, 51.36], zoom: 12 },
+      tower:       { center: [-0.03, 51.52], zoom: 14 },
+      waltham:     { center: [-0.02, 51.59], zoom: 12 },
+      wandsworth:  { center: [-0.19, 51.45], zoom: 12 },
+      city:        { center: [-0.093, 51.514], zoom: 15 },
+      westminster: { center: [-0.135, 51.497], zoom: 14 },
+      camden:      { center: [-0.14, 51.54], zoom: 14 }
+    };
+    if (locations[name]) {
+      map.flyTo({
+        center: locations[name].center,
+        zoom: locations[name].zoom,
+        essential: true
+      });
+    }
+  }
+
+  // 初始化加载图层并监听按钮
+  map.on('load', () => {
+    addMapLayers();
+
+    // 添加垃圾桶热力图图层
+    map.addLayer({
+      id: 'bins-heatmap',
+      type: 'heatmap',
+      source: 'bins',
+      maxzoom: 16,
+      layout: { visibility: 'none' },
+      paint: {
+        'heatmap-weight': 1,
+        'heatmap-intensity': 1,
+        'heatmap-color': [
+          "interpolate",
+          ["linear"],
+          ["heatmap-density"],
+          0, "rgba(0,0,255,0)",
+          0.2, "#66ccff",
+          0.4, "#66ff66",
+          0.6, "#ffff66",
+          0.8, "#ff9933",
+          1, "#ff0000"
+        ],
+        'heatmap-radius': 18,
+        'heatmap-opacity': 0.6
+      }
+    });
+
+    // 添加摄像头热力图图层
+    map.addLayer({
+      id: 'cams-heatmap',
+      type: 'heatmap',
+      source: 'cams',
+      maxzoom: 16,
+      layout: { visibility: 'none' },
+      paint: {
+        'heatmap-weight': 1,
+        'heatmap-intensity': 1,
+        'heatmap-color': [
+          "interpolate",
+          ["linear"],
+          ["heatmap-density"],
+          0, "rgba(0,0,0,0)",
+          0.2, "#d6e5fa",
+          0.4, "#8dbbf2",
+          0.6, "#3c8ee6",
+          0.8, "#0656a3",
+          1, "#003366"
+        ],
+        'heatmap-radius': 18,
+        'heatmap-opacity': 0.6
+      }
+    });
+
+    document.getElementById('toggleBinHeatmapBtn').addEventListener('click', () => {
+      const binLayerVisible = map.getLayoutProperty('bins-layer', 'visibility') === 'visible';
+      const binHeatmapVisible = map.getLayoutProperty('bins-heatmap', 'visibility') === 'visible';
+
+      if (!binLayerVisible && !binHeatmapVisible) return; // 不显示热力图时不执行任何操作
+
+      const toggle = !binHeatmapVisible;
+      map.setLayoutProperty('bins-layer', 'visibility', toggle ? 'none' : 'visible');
+      map.setLayoutProperty('bins-heatmap', 'visibility', toggle ? 'visible' : 'none');
+      document.getElementById('toggleBinHeatmapBtn').textContent = toggle ? 'Garbage Heatmap On' : 'Garbage Heatmap Off';
+    });
+
+    document.getElementById('toggleCamHeatmapBtn').addEventListener('click', () => {
+      const camLayerVisible = map.getLayoutProperty('cams-layer', 'visibility') === 'visible';
+      const camHeatmapVisible = map.getLayoutProperty('cams-heatmap', 'visibility') === 'visible';
+
+      if (!camLayerVisible && !camHeatmapVisible) return; // 不显示热力图时不执行任何操作
+
+      const toggle = !camHeatmapVisible;
+      map.setLayoutProperty('cams-layer', 'visibility', toggle ? 'none' : 'visible');
+      map.setLayoutProperty('cams-heatmap', 'visibility', toggle ? 'visible' : 'none');
+      document.getElementById('toggleCamHeatmapBtn').textContent = toggle ? 'Camera Heatmap On' : 'Camera Heatmap Off';
+    });
+
+    document.getElementById('binsToggle').addEventListener('change', (e) => {
+      const show = e.target.checked;
+      map.setLayoutProperty('bins-layer', 'visibility', show ? 'visible' : 'none');
+      map.setLayoutProperty('bins-heatmap', 'visibility', 'none');
+      document.getElementById('toggleBinHeatmapBtn').textContent = 'Garbage Heatmap Off';
+    });
+    map.setLayoutProperty('bins-heatmap', 'visibility', 'none');
+    document.getElementById('toggleHeatmapBtn').textContent = 'Heatmap Off';
+  });
+
+    document.getElementById('camsToggle').addEventListener('change', (e) => {
+      const show = e.target.checked;
+      map.setLayoutProperty('cams-layer', 'visibility', show ? 'visible' : 'none');
+      map.setLayoutProperty('cams-heatmap', 'visibility', 'none');
+      document.getElementById('toggleCamHeatmapBtn').textContent = 'Camera Heatmap Off';
+    });
+    map.setLayoutProperty('cams-heatmap', 'visibility', 'none');
+    document.getElementById('toggleHeatmapBtn').textContent = 'Heatmap Off';
+
+</script>
+
+</body>
+</html>
